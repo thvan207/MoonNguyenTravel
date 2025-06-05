@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bài viết</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f4f9; }
+        .container { max-width: 800px; margin: 2rem auto; background: #fff; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); }
+        h1 { color: #000000; }
+        img { max-width: 100%; border-radius: 8px; margin-top: 1rem; }
+        .back { margin-top: 1rem; display: block; text-decoration: none; color: #3B9C6F; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1 id="articleTitle"></h1>
+    <img id="articleImage" style="display:none;">
+    <p id="articleContent"></p>
+    <a href="tourngay.html" class="back">← Quay lại </a>
+</div>
+
+<script>
+    // Lấy ID bài viết từ URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const articleId = parseInt(urlParams.get('id'));
+
+    // Lấy dữ liệu bài viết từ LocalStorage
+    const articles = JSON.parse(localStorage.getItem('articles')) || [];
+    const article = articles.find(a => a.id === articleId);
+
+    if (article) {
+        document.getElementById('articleTitle').textContent = article.title;
+        document.getElementById('articleContent').textContent = article.content;
+        
+        if (article.imageUrl) {
+            const img = document.getElementById('articleImage');
+            img.src = article.imageUrl;
+            img.style.display = 'block';
+        }
+    } else {
+        document.querySelector('.container').innerHTML = '<h1>Bài viết không tồn tại</h1>';
+    }
+</script>
+
+</body>
+</html>

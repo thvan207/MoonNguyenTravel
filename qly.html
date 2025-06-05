@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="icon" type="image/png" href="img/image_circle.png">
+  <title>Moon | Quản lý bài viết</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 20px;
+      background-color: #f7f9fc;
+    }
+    .article-form {
+      border: 2px dashed #ccc;
+      padding: 20px;
+      margin: 30px auto;
+      max-width: 80%;
+      background-color: #ffffff;
+      border-radius: 10px;
+    }
+    .article-form input, .article-form textarea, .article-form select {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    .article-form button {
+      width: 100%;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .article-box {
+      border: 1px solid #ddd;
+      padding: 15px;
+      margin: 20px auto;
+      background-color: white;
+      border-radius: 8px;
+      max-width: 80%;
+    }
+    .article-box img.preview-img {
+      max-width: 100%;
+      height: 150px;
+      object-fit: cover;
+      display: block;
+      transition: height 0.3s ease;
+    }
+    .article-box img.full-img {
+      height: auto !important;
+    }
+    .article-content.collapsed {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .toggle-btn { background-color: #007bff; color: white; border: none; }
+    .edit-btn { background-color: #ffc107; color: black; border: none; }
+    .delete-btn { background-color: #dc3545; color: white; border: none; }
+    button {
+      margin: 5px 5px 0 0;
+      padding: 5px 10px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .image-preview {
+      max-width: 100%;
+      height: auto;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1 style="text-align:center;">QUẢN LÝ BÀI VIẾT</h1>
+
+  <div class="article-form">
+    <h2>Thêm / Sửa Bài Viết</h2>
+    <form id="articleForm">
+      <input type="text" id="title" placeholder="Tiêu đề bài viết" required>
+      <select id="pageSelect" required>
+        <option value="">-- Chọn trang hiển thị --</option>
+        <option value="1">Tour hàng ngày</option>
+        <option value="2">Tour miền núi</option>
+        <option value="3">Tour biển</option>
+        <option value="4">Tour nước ngoài</option>
+        <option value="5">Feedback</option>
+      </select>
+      <input type="file" id="imageFile" accept="image/*">
+      <img id="imagePreview" class="image-preview" style="display:none;" />
+      <textarea id="content" rows="6" placeholder="Nội dung bài viết" required></textarea>
+      <button type="submit">Lưu bài viết</button>
+    </form>
+  </div>
+
+  <div id="articlesContainer"></div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "moonnguyen-a4568.firebaseapp.com",
+      databaseURL: "https://moonnguyen-a4568-default-rtdb.firebaseio.com",
+      projectId: "moonnguyen-a4568",
+      storageBucket: "moonnguyen-a4568.appspot.com",
+      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const postsRef = db.ref("posts");
+    let editId = null;
+
+    const form = document.getElementById("articleForm");
+    const container = document.getElementById("articlesContainer");
+
+    // Xem trước ảnh
+    document.getElementById("imageFile").addEventListener("change", function () {
+      const file = this.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function () {
+          const img = document.getElementById("imagePreview");
+          img.src = reader.result;
+          img.style.display = "block";
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const title = document.getElementById("title").value.trim();
+      const content = document.getElementById("content").value.trim();
+      const pageId = parseInt(document.getElementById("pageSelect").value);
+      const imageSrc = document.getElementById("imagePreview").src || null;
+
+      if (!pageId || !title || !content) return alert("Vui lòng nhập đầy đủ thông tin");
+
+      if (editId) {
+        postsRef.child(editId).set({ title, content, imageUrl: imageSrc, pageId });
+        editId = null;
+      } else {
+        postsRef.push({ title, content, imageUrl: imageSrc, pageId });
+      }
+      form.reset();
+      document.getElementById("imagePreview").style.display = "none";
+    });
+
+    postsRef.on("value", (snapshot) => {
+      container.innerHTML = "";
+      const data = snapshot.val();
+      if (!data) return container.innerHTML = "<p>Không có bài viết nào.</p>";
+
+      Object.entries(data).forEach(([id, article]) => {
+        const div = document.createElement("div");
+        div.className = "article-box";
+        div.setAttribute("data-id", id);
+
+        const pageNameMap = {
+          1: "Tour hàng ngày",
+          2: "Tour miền núi",
+          3: "Tour biển",
+          4: "Tour nước ngoài",
+          5: "Feedback"
+        };
+
+        div.innerHTML = `
+          <h2>${article.title}</h2>
+          <p><strong>Trang hiển thị:</strong> ${pageNameMap[article.pageId] || 'Không xác định'} (ID: ${article.pageId})</p>
+          ${article.imageUrl ? `<img src="${article.imageUrl}" class="preview-img">` : ''}
+          <div class="article-content collapsed">${article.content}</div>
+          <button class="toggle-btn">Xem thêm</button>
+          <button class="edit-btn">Sửa</button>
+          <button class="delete-btn">Xóa</button>
+        `;
+
+        container.appendChild(div);
+      });
+
+      // Toggle
+      document.querySelectorAll(".toggle-btn").forEach(btn => {
+        btn.onclick = function () {
+          const box = this.closest(".article-box");
+          const content = box.querySelector(".article-content");
+          const img = box.querySelector("img");
+          content.classList.toggle("collapsed");
+          this.textContent = content.classList.contains("collapsed") ? "Xem thêm" : "Thu gọn";
+          if (img) img.classList.toggle("full-img");
+        };
+      });
+
+      // Edit
+      document.querySelectorAll(".edit-btn").forEach(btn => {
+        btn.onclick = function () {
+          const id = this.closest(".article-box").getAttribute("data-id");
+          const article = data[id];
+          if (!article) return;
+
+          document.getElementById("title").value = article.title;
+          document.getElementById("content").value = article.content;
+          document.getElementById("pageSelect").value = article.pageId;
+          if (article.imageUrl) {
+            const img = document.getElementById("imagePreview");
+            img.src = article.imageUrl;
+            img.style.display = "block";
+          }
+          editId = id;
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+      });
+
+      // Delete
+      document.querySelectorAll(".delete-btn").forEach(btn => {
+        btn.onclick = function () {
+          const id = this.closest(".article-box").getAttribute("data-id");
+          postsRef.child(id).remove();
+        };
+      });
+    });
+  </script>
+
+</body>
+</html>

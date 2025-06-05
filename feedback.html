@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> Moon | Feedback </title>
+    <link rel = "icon" type = "image/png" href = "img/image_circle.png">
+    <link rel="stylesheet" href="css/tour.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&family=Montserrat+Underline:ital,wght@0,100..900;1,100..900&family=Playwrite+AU+VIC+Guides&display=swap" rel="stylesheet">
+</head>
+<body>
+<div class="trang">
+<!-- logo + ten -->
+ <div class ="dau">
+    <img src = "img/dt.png">
+    <div class ="sdt"> Hotline: 
+        <p>039.647.8295</p>
+        <p>038.888.7195</p>
+    </div>
+    <div class="ten"> MOON NGUYEN TRAVEL </div>
+    <div></div>
+ </div>
+<!-- menu -->
+<div class = "menu">
+ <ul class="cha">
+    <li><a href="index.html">TRANG CHỦ </a></li>
+    <li>
+        <a href="">GIỚI THIỆU </a>
+        <ul class="con">
+            <li><a href="gioithieu.html">VỀ CHÚNG TÔI</a></li>
+            <li><a href="feedback.html">FEEDBACK</a></li>
+        </ul>
+    </li>
+    <li>
+        <a href="#">TOUR </a>
+        <ul class="con">
+            <li>
+                <a href="tourngay.html">TOUR HÀNG NGÀY </a>
+                 <ul class = "con" id = "mn3">
+                    <li><a href = "">SAPA </a></li>
+                    <li><a href = "">HẠ LONG - YÊN TỬ </a></li>
+                    <li><a href = "">NINH BÌNH - HÀ NAM </a></li>
+                    <li><a href = "">HÀ NỘI - VĨNH PHÚC  </a></li>
+                    <li><a href = ""> KẾT HỢP </a></li>
+                 </ul>
+            </li>
+            <li>
+                <a href="tourmiennui.html">TOUR MIỀN NÚI </a>
+                <ul class = "con" id = "mn3">
+                    <li><a href = "">HÀ GIANG </a></li>
+                    <li><a href = "">CAO BẰNG - BẮC KẠN  </a></li>
+                    <li><a href = "">MỘC CHÂU - MAI CHÂU - TÀ XÙA  </a></li>
+                    <li><a href = "">LIÊN TUYẾN ĐÔNG BẮC - TÂY BẮC </a></li>
+                 </ul>
+            </li>
+            <li>
+                <a href="tourbien.html">TOUR BIỂN </a>
+                <ul class = "con" id = "mn3">
+                    <li><a href = "">CÔ TÔ - QUAN LẠN </a></li>
+                    <li><a href = "">CÁT BÀ  </a></li>
+                    <li><a href = "">QUẢNG BÌNH </a></li>
+                    <li><a href = "">MÓNG CÁI - ĐÔNG HƯNG </a></li>
+                    <li><a href = "">BÌNH LIÊU </a></li>
+                 </ul>
+            </li>
+            <li>
+                <a href="tourngoai.html">TOUR NƯỚC NGOÀI </a>
+            </li>
+        </ul>
+    </li>
+    <li>
+        <a href = "pt.html">PHƯƠNG TIỆN</a>
+    </li>
+    <li>
+        <a href = "phong.html"> PHÒNG </a>
+    </li>
+    <li>
+        <a href = "lh.html"> LIÊN HỆ </a>
+    </li>
+    <li>
+        <a href = "dn.html"> ĐĂNG NHẬP </a>
+    </li>
+  </ul>
+ </div>
+<!-- nd -->
+<div class="tb">
+    <div class = "tieude_nd"> FEEDBACK </div>
+    <div class="tamgiac"></div>
+</div>
+<div class = "nd">
+    <div id="articlesContainer"></div>
+        <!-- Firebase SDK phiên bản compat (như trang quản lý) -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+
+    <script>
+      // Cấu hình Firebase (thay YOUR_API_KEY, YOUR_PROJECT_ID... bằng config thật)
+      const firebaseConfig = {
+        apiKey: "YOUR_API_KEY",
+        authDomain: "moonnguyen-a4568.firebaseapp.com",
+        databaseURL: "https://moonnguyen-a4568-default-rtdb.firebaseio.com",
+        projectId: "moonnguyen-a4568",
+        storageBucket: "moonnguyen-a4568.appspot.com",
+        messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+        appId: "YOUR_APP_ID",
+      };
+
+      // Khởi tạo Firebase
+      firebase.initializeApp(firebaseConfig);
+      const db = firebase.database();
+      const postsRef = db.ref("posts"); // Trùng với ref trong trang quản lý
+
+      // Hàm hiển thị bài viết cho pageId = 1 (Tour hàng ngày)
+      function renderArticles() {
+        const container = document.getElementById("articlesContainer");
+        container.innerHTML = "";
+        const pageId = 5; // feedback
+
+        postsRef.once("value", (snapshot) => {
+          const data = snapshot.val();
+          if (!data) {
+            container.innerHTML = "<p>Không có bài viết nào.</p>";
+            return;
+          }
+
+          // Lọc bài viết theo pageId
+          const filtered = Object.entries(data).filter(
+            ([id, article]) => article.pageId === pageId
+          );
+
+          if (filtered.length === 0) {
+            container.innerHTML = "<p>Không có bài viết nào.</p>";
+            return;
+          }
+
+          filtered.forEach(([id, article]) => {
+            const div = document.createElement("div");
+            div.className = "article-box";
+
+            div.innerHTML = `
+              <h2>${article.title}</h2>
+              ${
+                article.imageUrl
+                  ? `<img src="${article.imageUrl}" alt="Ảnh bài viết" class="preview-img" />`
+                  : ""
+              }
+              <div class="article-content collapsed">${article.content}</div>
+              <button class="toggle-btn">Xem thêm</button>
+            `;
+
+            container.appendChild(div);
+          });
+
+          // Bắt sự kiện cho các nút xem thêm/thu gọn
+          container.querySelectorAll(".toggle-btn").forEach((btn) => {
+            btn.addEventListener("click", () => {
+              const box = btn.closest(".article-box");
+              const content = box.querySelector(".article-content");
+              const img = box.querySelector("img.preview-img");
+              content.classList.toggle("collapsed");
+              btn.textContent = content.classList.contains("collapsed")
+                ? "Xem thêm"
+                : "Thu gọn";
+              if (img) img.classList.toggle("full-img");
+            });
+          });
+        });
+      }
+
+      // Gọi hàm hiển thị khi tải trang
+      renderArticles();
+    </script>
+
+</div>
+<!-- chan trang  -->
+<br>
+<br>
+<br>
+<div class = "dchi">
+    <h2> MOON NGUYEN TRAVEL </h2>
+    <hr>
+    <p> Địa chỉ: Hoàn Kiếm - Hà Nội</p>
+    <p> Hotline: 039.647.8295 | 038.888.7195</p>
+    <p> Email: nguyenthuhang.ms@gmail.com</p>
+    <p> Website: MOON NGUYEN TRAVEL</p>
+    <p><a href = "https://www.facebook.com/share/1899EYWePT/?mibextid=wwXIfr"> Fanpage: Moon Nguyen Travel </a></p>
+  </div>
+</div>
+</div>
+</body>
